@@ -298,9 +298,7 @@ c = compute(a, b)
 print("result:", c)
 ~~~
 
-This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations. There are certain limitations to this method. For example, the inputs and outputs can only be PyTorch tensors, and you must be careful with loops (`for` statements) and conditionals (`if` statements). For more information, see the [guide](https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html) on the `torch.compile` programming model.
-
-For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
+This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations. For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
 
 ~~~python
 torch._logging.set_logs(graph_code=True)
@@ -336,6 +334,51 @@ This gives us:
 ~~~
 
 This shows that PyTorch automatically generates a GPU kernel named `triton_poi_fused_add_cos_mul_sin_0` that performs all operations in one go, instead of having separate kernels for each operation. The generated kernel uses [Triton](https://triton-lang.org/main/index.html), a Python-based programming language for GPU computing.
+
+There are certain limitations `@torch.compile`. For example, the inputs and outputs can only be PyTorch tensors, and you must be careful with loops (`for` statements) and conditionals (`if` statements). For more information, see the [guide](https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html) on the `torch.compile` programming model.
+
+As an example, consider the following function that scales a tensor by `2` if the sum is positive and `-2` otherwise. Note that we pass the `fullgraph=True` option to force PyTorch to raise an error if it could not compile. 
+
+~~~python
+import torch
+
+@torch.compile(fullgraph=True)
+def fail_example(x):
+    if x.sum() > 0:
+        return x * 2
+    else:
+        return x - 2
+
+fail_example(torch.rand(100, device=device))
+~~~
+
+This results in the following error:
+
+~~~output
+Unsupported: Data-dependent branching
+  Explanation: Detected data-dependent branching (e.g. `if my_tensor.sum() > 0:`). Dynamo does not support tracing dynamic control flow.
+  Hint: This graph break is fundamental - it is unlikely that Dynamo will ever be able to trace through your code. Consider finding a workaround.
+  Hint: Use `torch.cond` to express dynamic control flow.
+
+  Developer debug context: attempted to jump with TensorVariable()
+
+ For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0170.html
+~~~
+
+The problem here is that PyTorch cannot statically determine whether to execute the `x * 2` operation or the `x * -2` operation, as this is dependent on the runtime data of `x`. 
+
+Instead, for this example, we can use `torch.where` to select between them instead of an if statement.
+
+~~~python
+import torch
+
+@torch.compile(fullgraph=True)
+def correct_example(x):
+    condition = x.sum() > 0
+    return torch.where(condition, x * 2, x - 2)
+
+correct_example(torch.rand(100, device=device))
+~~~
 
 
 ## Comparison of performance
