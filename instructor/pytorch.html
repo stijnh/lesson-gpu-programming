@@ -389,16 +389,16 @@
 </div>
 <div class="section level1">
 <h1 id="introduction-to-pytorch">Introduction to PyTorch<a class="anchor" aria-label="anchor" href="#introduction-to-pytorch"></a></h1>
-<p>PyTorch (or just <em>torch</em>) is a popular open-source library for
-Python that is commonly used for machine learning and AI tasks. It
-provides many features and functions and is widely used by many people.
-It was originally developed by Meta Inc., but is currently maintained by
-the PyTorch Foundation, which is a subsidiary of the Linux
-Foundation.</p>
-<p>You can read more about torch here: <a href="https://pytorch.org/" class="external-link uri">https://pytorch.org/</a></p>
-<p>PyTorch has many features related to AI and training of neural
-networks. However, for this episode, we will focus on running
-general-prupose code on the GPU using <em>Tensor</em>s.</p>
+<p>PyTorch, often imported as <code>torch</code>, is a popular
+open-source Python library commonly used for machine learning and AI. It
+provides many features for working with tensors, automatic
+differentiation, neural networks, and GPU acceleration. PyTorch was
+originally developed by Meta, and is now maintained by the PyTorch
+Foundation, which is part of the Linux Foundation.</p>
+<p>You can read more about PyTorch here: <a href="https://pytorch.org/" class="external-link uri">https://pytorch.org/</a></p>
+<p>PyTorch has many features related to AI and training neural networks.
+However, in this episode, we will focus on running general-purpose code
+on the GPU using tensors.</p>
 </div>
 <div class="section level1">
 <h1 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a></h1>
@@ -408,41 +408,39 @@ general-prupose code on the GPU using <em>Tensor</em>s.</p>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" tabindex="-1" aria-label="code-block-1-1"></a><span class="im">import</span> torch</span></code></pre>
 </div>
-<p>Next, we can check if PyTorch was able to detect our GPU:</p>
+<p>Next, we can check whether PyTorch detected a GPU:</p>
 <div class="codewrapper sourceCode" id="cb2">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1" aria-label="code-block-2-1"></a><span class="bu">print</span>(<span class="st">"GPU available:"</span>, torch.cuda.is_available())</span></code></pre>
 </div>
-<p>After this, we can create a <em>device</em> and print its name. The
-device determines where PyTorch stores the data and performs
-computations. In our case, we will use device <code>cuda:0</code>, which
-refers to the NVIDA GPU with index 0 that is available in your
-system.</p>
+<p>After this, we can create a device and print its name. The device
+determines where PyTorch stores data and performs computations. In our
+case, we will use <code>cuda:0</code>, which refers to the NVIDIA GPU
+with index 0.</p>
 <div class="codewrapper sourceCode" id="cb3">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" tabindex="-1" aria-label="code-block-3-1"></a><span class="co"># Initialize the device</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1" aria-label="code-block-3-2"></a>device <span class="op">=</span> torch.device(<span class="st">"cuda:0"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1" aria-label="code-block-3-3"></a></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1" aria-label="code-block-3-4"></a><span class="co"># Print the name</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1" aria-label="code-block-3-4"></a><span class="co"># Print the device name</span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1" aria-label="code-block-3-5"></a>name <span class="op">=</span> torch.cuda.get_device_name(device)</span>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1" aria-label="code-block-3-6"></a><span class="bu">print</span>(<span class="st">"GPU detected:"</span>, name)</span></code></pre>
 </div>
-<p>This shows the full name of our GPU. For example:</p>
+<p>This shows the full name of the GPU. For example:</p>
 <div class="codewrapper">
 <h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
 <pre class="output" tabindex="0"><code>GPU detected: NVIDIA A100-SXM4-40GB MIG 3g.20gb</code></pre>
 </div>
 <p>Next, we create a tensor. A tensor is similar to a NumPy array. We
-can create a tensor using <code>torch.tensor</code>, where we need to
-specify that we want the data on the GPU using
-<code>device=device</code>.</p>
+can create a tensor using <code>torch.tensor</code>, and place it on the
+GPU using <code>device=device</code>.</p>
 <div class="codewrapper sourceCode" id="cb5">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" tabindex="-1" aria-label="code-block-5-1"></a><span class="co"># Create tensor on the GPU containing the numbers [1,2,3,4]</span></span>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" tabindex="-1" aria-label="code-block-5-1"></a><span class="co"># Create a tensor on the GPU containing the numbers [1, 2, 3, 4]</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1" aria-label="code-block-5-2"></a>x <span class="op">=</span> torch.tensor([<span class="fl">1.0</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], device<span class="op">=</span>device)</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1" aria-label="code-block-5-3"></a></span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1" aria-label="code-block-5-4"></a><span class="co"># Print the number of elements</span></span>
@@ -451,27 +449,32 @@ specify that we want the data on the GPU using
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1" aria-label="code-block-5-7"></a><span class="co"># Print the data type of the elements</span></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1" aria-label="code-block-5-8"></a><span class="bu">print</span>(x.dtype)</span></code></pre>
 </div>
-<p>Which should print <code>4</code> and <code>torch.float32</code>.
-Notice that the default data type (32-bit floating-point numbers) is
-different from NumPy’s default data type (which uses 64-bit), since GPUs
-are much faster on 32-bit numbers. The default can be changed using
-<code>torch.set_default_dtype(torch.float64)</code> for compability with
-numpy.</p>
+<p>This should print <code>4</code> and <code>torch.float32</code>.
+Notice that PyTorch’s default floating-point type is usually 32-bit,
+while NumPy often defaults to 64-bit floating-point numbers. This is
+useful on GPUs, where 32-bit operations are usually faster. You can
+change the default floating-point dtype using
+<code>torch.set_default_dtype(torch.float64)</code>, which can be useful
+when matching NumPy code.</p>
 </div>
 <div class="section level1">
 <h1 id="working-with-tensors">Working with tensors<a class="anchor" aria-label="anchor" href="#working-with-tensors"></a></h1>
-<p>To convert a NumPy array into a PyTorch tensor, we can use the
-function <code>torch.tensor</code>. To convert it back to a NumPy array,
-we can use the function <code>tensor.cpu().numpy()</code>.</p>
+<p>To convert a NumPy array into a PyTorch tensor, we can use
+<code>torch.from_numpy</code>. The resulting tensor shares memory with
+the NumPy array.</p>
+<p>To convert a tensor back into a NumPy array, we can use
+<code>tensor.cpu().numpy()</code>. Since NumPy arrays always live in CPU
+memory, CUDA tensors must first be copied back to the CPU using
+<code>.cpu()</code>.</p>
 <div class="codewrapper sourceCode" id="cb6">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" tabindex="-1" aria-label="code-block-6-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1" aria-label="code-block-6-2"></a></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1" aria-label="code-block-6-3"></a><span class="co"># Create numpy array</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1" aria-label="code-block-6-3"></a><span class="co"># Create NumPy array</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1" aria-label="code-block-6-4"></a>a <span class="op">=</span> np.array([<span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>])</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1" aria-label="code-block-6-5"></a></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1" aria-label="code-block-6-6"></a><span class="co"># Convert numpy -&gt; torch</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1" aria-label="code-block-6-6"></a><span class="co"># Convert NumPy -&gt; PyTorch tensor (CPU)</span></span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1" aria-label="code-block-6-7"></a>b <span class="op">=</span> torch.from_numpy(a)</span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1" aria-label="code-block-6-8"></a></span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1" aria-label="code-block-6-9"></a><span class="co"># Copy CPU -&gt; GPU</span></span>
@@ -480,14 +483,14 @@ we can use the function <code>tensor.cpu().numpy()</code>.</p>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1" aria-label="code-block-6-12"></a><span class="co"># Copy GPU -&gt; CPU</span></span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1" aria-label="code-block-6-13"></a>d <span class="op">=</span> c.cpu()</span>
 <span id="cb6-14"><a href="#cb6-14" tabindex="-1" aria-label="code-block-6-14"></a></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1" aria-label="code-block-6-15"></a><span class="co"># Convert back to numpy array</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1" aria-label="code-block-6-15"></a><span class="co"># Convert back to NumPy array</span></span>
 <span id="cb6-16"><a href="#cb6-16" tabindex="-1" aria-label="code-block-6-16"></a>e <span class="op">=</span> d.numpy()</span>
 <span id="cb6-17"><a href="#cb6-17" tabindex="-1" aria-label="code-block-6-17"></a></span>
 <span id="cb6-18"><a href="#cb6-18" tabindex="-1" aria-label="code-block-6-18"></a><span class="co"># They should be equal</span></span>
 <span id="cb6-19"><a href="#cb6-19" tabindex="-1" aria-label="code-block-6-19"></a><span class="bu">print</span>(np.<span class="bu">all</span>(a <span class="op">==</span> e))</span></code></pre>
 </div>
-<p>This should print <code>True</code>, since the conversion of NumPy to
-PyTorch and back is lossless.A</p>
+<p>This should print <code>True</code>, since the conversion from NumPy
+to PyTorch and back is lossless.</p>
 <p>There are also many ways to create a tensor directly on the GPU, many
 are similar to functions in NumPy. These function create the data
 directly in GPU memory, without copy from the CPU. Here are some
@@ -501,17 +504,20 @@ examples.</p>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1" aria-label="code-block-7-4"></a><span class="co"># Gives [1.0, 1.0, 1.0, 1.0, ...]</span></span>
 <span id="cb7-5"><a href="#cb7-5" tabindex="-1" aria-label="code-block-7-5"></a>b <span class="op">=</span> torch.ones(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1" aria-label="code-block-7-6"></a></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1" aria-label="code-block-7-7"></a><span class="co"># Gives [0.3226, 0.7758, 0.6456, ...]</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1" aria-label="code-block-7-8"></a>c <span class="op">=</span> torch.rand(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1" aria-label="code-block-7-7"></a><span class="co"># Gives [42.0, 42.0, 42.0, 42.0, ...]</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1" aria-label="code-block-7-8"></a>c <span class="op">=</span> torch.fill(<span class="dv">10</span>, <span class="fl">42.0</span>, device<span class="op">=</span>device)</span>
 <span id="cb7-9"><a href="#cb7-9" tabindex="-1" aria-label="code-block-7-9"></a></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1" aria-label="code-block-7-10"></a><span class="co"># Gives an unitialized array</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1" aria-label="code-block-7-11"></a>d <span class="op">=</span> torch.empty(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1" aria-label="code-block-7-10"></a><span class="co"># Gives [0.3226, 0.7758, 0.6456, ...]</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1" aria-label="code-block-7-11"></a>d <span class="op">=</span> torch.rand(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
 <span id="cb7-12"><a href="#cb7-12" tabindex="-1" aria-label="code-block-7-12"></a></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1" aria-label="code-block-7-13"></a><span class="co"># Gives [0, 1, 2, 3, 4, ...]</span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1" aria-label="code-block-7-14"></a>e <span class="op">=</span> torch.arange(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1" aria-label="code-block-7-13"></a><span class="co"># Gives an unitialized array</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1" aria-label="code-block-7-14"></a>e <span class="op">=</span> torch.empty(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
 <span id="cb7-15"><a href="#cb7-15" tabindex="-1" aria-label="code-block-7-15"></a></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1" aria-label="code-block-7-16"></a><span class="co"># Gives [0.0000, 0.1111, 0.2222, 0.3333, ..., 1.0000]</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1" aria-label="code-block-7-17"></a>f <span class="op">=</span> torch.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">10</span>, device<span class="op">=</span>device)</span></code></pre>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1" aria-label="code-block-7-16"></a><span class="co"># Gives [0, 1, 2, 3, 4, ...]</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1" aria-label="code-block-7-17"></a>f <span class="op">=</span> torch.arange(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1" aria-label="code-block-7-18"></a></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1" aria-label="code-block-7-19"></a><span class="co"># Gives [0.0000, 0.1111, 0.2222, 0.3333, ..., 1.0000]</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1" aria-label="code-block-7-20"></a>g <span class="op">=</span> torch.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">10</span>, device<span class="op">=</span>device)</span></code></pre>
 </div>
 <p>Tensors can be multi-dimensional. They can be 1-dimensional (vector),
 2-dimensional (matrix), 3-dimensional, …</p>
@@ -527,28 +533,153 @@ examples.</p>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1" aria-label="code-block-8-7"></a><span class="co"># This is a cube of size 3x3x3</span></span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1" aria-label="code-block-8-8"></a>z <span class="op">=</span> torch.rand((<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>), device<span class="op">=</span>device)</span></code></pre>
 </div>
-<p>Slicing is also supported, similar to NumPy:</p>
+<p>Slicing is also supported, similar to NumPy.</p>
 <div class="codewrapper sourceCode" id="cb9">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" tabindex="-1" aria-label="code-block-9-1"></a>x <span class="op">=</span> torch.rand(<span class="dv">5</span>, <span class="dv">5</span>, device<span class="op">=</span>device)</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1" aria-label="code-block-9-2"></a></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1" aria-label="code-block-9-3"></a><span class="co"># This is our matrix</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1" aria-label="code-block-9-4"></a><span class="bu">print</span>(x)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1" aria-label="code-block-9-3"></a><span class="co"># Print the first row</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1" aria-label="code-block-9-4"></a><span class="bu">print</span>(x[<span class="dv">0</span>,:])</span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1" aria-label="code-block-9-5"></a></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1" aria-label="code-block-9-6"></a><span class="co"># Print the first row</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1" aria-label="code-block-9-7"></a><span class="bu">print</span>(x[<span class="dv">0</span>,:])</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1" aria-label="code-block-9-8"></a></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1" aria-label="code-block-9-9"></a><span class="co"># Print the first column</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1" aria-label="code-block-9-10"></a><span class="bu">print</span>(x[:,<span class="dv">0</span>])</span></code></pre>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1" aria-label="code-block-9-6"></a><span class="co"># Print the first column</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1" aria-label="code-block-9-7"></a><span class="bu">print</span>(x[:,<span class="dv">0</span>])</span></code></pre>
+</div>
+<div class="codewrapper">
+<h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="output" tabindex="0"><code>tensor([0.6239, 0.7711, 0.9718, 0.5485, 0.9743], device='cuda:0')
+tensor([0.6239, 0.9538, 0.6850, 0.3817, 0.3251], device='cuda:0')</code></pre>
+</div>
+<p>Notice how, after slicing, the results are again tensors. as these
+are view. Modifying the slice will also modify the original tensor.</p>
+<p>Tensors also support many mathematical operations. Note that</p>
+<div class="codewrapper sourceCode" id="cb11">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" tabindex="-1" aria-label="code-block-11-1"></a>x <span class="op">=</span> torch.ones(<span class="dv">5</span>, device<span class="op">=</span>device)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1" aria-label="code-block-11-2"></a>y <span class="op">=</span> torch.arange(<span class="dv">5</span>, device<span class="op">=</span>device)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1" aria-label="code-block-11-3"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1" aria-label="code-block-11-4"></a><span class="bu">print</span>(<span class="st">"x+y:"</span>, x <span class="op">+</span> y)</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1" aria-label="code-block-11-5"></a><span class="bu">print</span>(<span class="st">"x-y:"</span>, x <span class="op">-</span> y)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1" aria-label="code-block-11-6"></a><span class="bu">print</span>(<span class="st">"x*y:"</span>, x <span class="op">*</span> y)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1" aria-label="code-block-11-7"></a><span class="bu">print</span>(<span class="st">"x/y:"</span>, x <span class="op">/</span> y)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1" aria-label="code-block-11-8"></a><span class="bu">print</span>(<span class="st">"sqrt:"</span>, torch.sqrt(y))</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1" aria-label="code-block-11-9"></a><span class="bu">print</span>(<span class="st">"exp:"</span>, torch.exp(y))</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1" aria-label="code-block-11-10"></a><span class="bu">print</span>(<span class="st">"sin:"</span>, torch.sin(y))</span></code></pre>
+</div>
+<div class="codewrapper">
+<h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="output" tabindex="0"><code>x+y: tensor([1., 2., 3., 4., 5.], device='cuda:0')
+x-y: tensor([ 1.,  0., -1., -2., -3.], device='cuda:0')
+x*y: tensor([0., 1., 2., 3., 4.], device='cuda:0')
+x/y: tensor([   inf, 1.0000, 0.5000, 0.3333, 0.2500], device='cuda:0')
+sqrt:tensor([0.0000, 1.0000, 1.4142, 1.7321, 2.0000], device='cuda:0')
+exp: tensor([ 1.0000,  2.7183,  7.3891, 20.0855, 54.5982], device='cuda:0')
+sin: tensor([ 0.0000,  0.8415,  0.9093,  0.1411, -0.7568], device='cuda:0')</code></pre>
+</div>
+<p>Be aware that you cannot mix NumPy arrays and GPU tensors in these
+operations. To be able to do this, you either need to use
+<code>.cpu()</code> to convert your GPU tensor into a CPU tensor or,
+alternatively, copy your NumPy array into a GPU tensor:</p>
+<div class="codewrapper sourceCode" id="cb13">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" tabindex="-1" aria-label="code-block-13-1"></a>x <span class="op">=</span> torch.rand(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1" aria-label="code-block-13-2"></a>y <span class="op">=</span> np.arange(<span class="dv">10</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1" aria-label="code-block-13-3"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1" aria-label="code-block-13-4"></a><span class="co"># This is not allowed</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1" aria-label="code-block-13-5"></a><span class="cf">try</span>:</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1" aria-label="code-block-13-6"></a>    <span class="bu">print</span>(x <span class="op">+</span> y)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1" aria-label="code-block-13-7"></a><span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1" aria-label="code-block-13-8"></a>    <span class="bu">print</span>(<span class="st">"error:"</span>, e)</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1" aria-label="code-block-13-9"></a></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1" aria-label="code-block-13-10"></a><span class="co"># This returns a tensor on the CPU</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1" aria-label="code-block-13-11"></a><span class="bu">print</span>(<span class="st">"CPU:"</span>, x.cpu() <span class="op">+</span> y)</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1" aria-label="code-block-13-12"></a></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1" aria-label="code-block-13-13"></a><span class="co"># This returns a tensor on the GPU</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1" aria-label="code-block-13-14"></a><span class="bu">print</span>(<span class="st">"GPU:"</span>, x <span class="op">+</span> torch.tensor(y, device<span class="op">=</span>device))</span></code></pre>
+</div>
+<div class="codewrapper">
+<h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="output" tabindex="0"><code>error: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+CPU: tensor([0.6511, 1.7587, 2.4972, 3.3509, 4.5963])
+GPU: tensor([0.6511, 1.7587, 2.4972, 3.3509, 4.5963], device='cuda:0')</code></pre>
 </div>
 </div>
 <div class="section level1">
 <h1 id="using-torch-compile">Using <code>torch.compile</code>
 <a class="anchor" aria-label="anchor" href="#using-torch-compile"></a></h1>
-<p>From version 2.0, PyTorch supports the <code>@torch.compile</code>
-decorator.</p>
+<p>An important feature introduced in PyTorch 2.0 is the
+<code>@torch.compile</code> decorator. This decorator can be applied
+that Python function and tells PyTorch to compile the PyTorch operations
+inside the function to a more optimized version before execution it.
+Instead of running the function line-by-line in Python, PyTorch analyzes
+the operations inside the function and builds a more efficient
+computation graph. It can then apply various optimizations, such as
+fusing multiple operations together, reducing memory usage, and
+generating more efficient GPU kernels.</p>
+<p>This process can significantly improve performance, especially for
+functions that perform many tensor operations. The compiled function can
+therefore run much faster than the original Python version, while
+keeping the code easy to read and write.</p>
+<p>Below is a simple example. We create two large tensors on the GPU and
+define a function that performs several mathematical operations on them.
+By adding the <code>@torch.compile</code> decorator, PyTorch will
+attempt to optimize the function automatically.</p>
+<div class="codewrapper sourceCode" id="cb15">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" tabindex="-1" aria-label="code-block-15-1"></a><span class="at">@torch.compile</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1" aria-label="code-block-15-2"></a><span class="kw">def</span> compute(a, b):</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1" aria-label="code-block-15-3"></a>    <span class="cf">return</span> (a <span class="op">+</span> b) <span class="op">+</span> torch.sin(a) <span class="op">*</span> torch.cos(b)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1" aria-label="code-block-15-4"></a>    </span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1" aria-label="code-block-15-5"></a>    </span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1" aria-label="code-block-15-6"></a>a <span class="op">=</span> torch.rand(<span class="dv">1_000_000</span>, device<span class="op">=</span>device)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1" aria-label="code-block-15-7"></a>b <span class="op">=</span> torch.rand(<span class="dv">1_000_000</span>, device<span class="op">=</span>device)</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1" aria-label="code-block-15-8"></a>c <span class="op">=</span> compute(a, b)</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1" aria-label="code-block-15-9"></a></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1" aria-label="code-block-15-10"></a><span class="bu">print</span>(<span class="st">"result:"</span>, c)</span></code></pre>
+</div>
 <p><a href="https://docs.pytorch.org/docs/2.11/user_guide/torch_compiler/compile/programming_model.html" class="external-link">troubleshooting</a></p>
+<p>To see what PyTorch is doing internally, we can use
+<code>set_logs</code> that will print what happens under the hood.</p>
+<div class="codewrapper sourceCode" id="cb16">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" tabindex="-1" aria-label="code-block-16-1"></a>torch._logging.set_logs(graph_code<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1" aria-label="code-block-16-2"></a>compute(a, b)</span></code></pre>
+</div>
+<div class="codewrapper">
+<h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="output" tabindex="0"><code>[__kernel_code] import triton
+[__kernel_code] import triton.language as tl
+[__kernel_code]
+[__kernel_code] from torch._inductor.runtime import triton_helpers, triton_heuristics
+[__kernel_code] from torch._inductor.runtime.triton_helpers import libdevice, math as tl_math
+[__kernel_code] from torch._inductor.runtime.hints import AutotuneHint, ReductionHint, TileHint, DeviceProperties
+[__kernel_code] triton_helpers.set_driver_to_gpu()
+[__kernel_code]
+[__kernel_code] @triton.jit
+[__kernel_code] def triton_poi_fused_add_cos_mul_sin_0(in_ptr0, in_ptr1, out_ptr0, xnumel, XBLOCK : tl.constexpr):
+[__kernel_code]     xnumel = 1000000
+[__kernel_code]     xoffset = tl.program_id(0) * XBLOCK
+[__kernel_code]     xindex = xoffset + tl.arange(0, XBLOCK)[:]
+[__kernel_code]     xmask = xindex &lt; xnumel
+[__kernel_code]     x0 = xindex
+[__kernel_code]     tmp0 = tl.load(in_ptr0 + (x0), xmask)
+[__kernel_code]     tmp1 = tl.load(in_ptr1 + (x0), xmask)
+[__kernel_code]     tmp2 = tmp0 + tmp1
+[__kernel_code]     tmp3 = libdevice.sin(tmp0)
+[__kernel_code]     tmp4 = libdevice.cos(tmp1)
+[__kernel_code]     tmp5 = tmp3 * tmp4
+[__kernel_code]     tmp6 = tmp2 + tmp5
+[__kernel_code]     tl.store(out_ptr0 + (x0), tmp6, xmask)
+[__kernel_code]    </code></pre>
+</div>
 <!--
 Place links that you need to refer to multiple times across pages here. Delete
 any links that you are not going to use.
