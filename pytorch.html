@@ -722,14 +722,9 @@ attempt to optimize the function automatically.</p>
 <p>This lets PyTorch optimize the <code>compute</code> function as a
 whole and makes the code faster than running the operations separately.
 It accomplishes this by tracing through your Python code and looking for
-PyTorch operations. There are certain limitations to this method. For
-example, the inputs and outputs can only be PyTorch tensors, and you
-must be careful with loops (<code>for</code> statements) and
-conditionals (<code>if</code> statements). For more information, see the
-<a href="https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html" class="external-link">guide</a>
-on the <code>torch.compile</code> programming model.</p>
-<p>For example, to see what PyTorch is doing internally, we can use
-<code>set_logs</code>, which prints what happens under the hood.</p>
+PyTorch operations. For example, to see what PyTorch is doing
+internally, we can use <code>set_logs</code>, which prints what happens
+under the hood.</p>
 <div class="codewrapper sourceCode" id="cb20">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
@@ -769,6 +764,61 @@ on the <code>torch.compile</code> programming model.</p>
 operations in one go, instead of having separate kernels for each
 operation. The generated kernel uses <a href="https://triton-lang.org/main/index.html" class="external-link">Triton</a>, a
 Python-based programming language for GPU computing.</p>
+<p>There are certain limitations <code>@torch.compile</code>. For
+example, the inputs and outputs can only be PyTorch tensors, and you
+must be careful with loops (<code>for</code> statements) and
+conditionals (<code>if</code> statements). For more information, see the
+<a href="https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html" class="external-link">guide</a>
+on the <code>torch.compile</code> programming model.</p>
+<p>As an example, consider the following function that scales a tensor
+by <code>2</code> if the sum is positive and <code>-2</code> otherwise.
+Note that we pass the <code>fullgraph=True</code> option to force
+PyTorch to raise an error if it could not compile.</p>
+<div class="codewrapper sourceCode" id="cb22">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" tabindex="-1" aria-label="code-block-22-1"></a><span class="im">import</span> torch</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1" aria-label="code-block-22-2"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1" aria-label="code-block-22-3"></a><span class="at">@torch.compile</span>(fullgraph<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1" aria-label="code-block-22-4"></a><span class="kw">def</span> fail_example(x):</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1" aria-label="code-block-22-5"></a>    <span class="cf">if</span> x.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1" aria-label="code-block-22-6"></a>        <span class="cf">return</span> x <span class="op">*</span> <span class="dv">2</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1" aria-label="code-block-22-7"></a>    <span class="cf">else</span>:</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1" aria-label="code-block-22-8"></a>        <span class="cf">return</span> x <span class="op">-</span> <span class="dv">2</span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1" aria-label="code-block-22-9"></a></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1" aria-label="code-block-22-10"></a>fail_example(torch.rand(<span class="dv">100</span>, device<span class="op">=</span>device))</span></code></pre>
+</div>
+<p>This results in the following error:</p>
+<div class="codewrapper">
+<h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="output" tabindex="0"><code>Unsupported: Data-dependent branching
+  Explanation: Detected data-dependent branching (e.g. `if my_tensor.sum() &gt; 0:`). Dynamo does not support tracing dynamic control flow.
+  Hint: This graph break is fundamental - it is unlikely that Dynamo will ever be able to trace through your code. Consider finding a workaround.
+  Hint: Use `torch.cond` to express dynamic control flow.
+
+  Developer debug context: attempted to jump with TensorVariable()
+
+ For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0170.html</code></pre>
+</div>
+<p>The problem here is that PyTorch cannot statically determine whether
+to execute the <code>x * 2</code> operation or the <code>x * -2</code>
+operation, as this is dependent on the runtime data of
+<code>x</code>.</p>
+<p>Instead, for this example, we can use <code>torch.where</code> to
+select between them instead of an if statement.</p>
+<div class="codewrapper sourceCode" id="cb24">
+<h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
+</h3>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" tabindex="-1" aria-label="code-block-24-1"></a><span class="im">import</span> torch</span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1" aria-label="code-block-24-2"></a></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1" aria-label="code-block-24-3"></a><span class="at">@torch.compile</span>(fullgraph<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1" aria-label="code-block-24-4"></a><span class="kw">def</span> correct_example(x):</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1" aria-label="code-block-24-5"></a>    condition <span class="op">=</span> x.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1" aria-label="code-block-24-6"></a>    <span class="cf">return</span> torch.where(condition, x <span class="op">*</span> <span class="dv">2</span>, x <span class="op">-</span> <span class="dv">2</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1" aria-label="code-block-24-7"></a></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1" aria-label="code-block-24-8"></a>correct_example(torch.rand(<span class="dv">100</span>, device<span class="op">=</span>device))</span></code></pre>
+</div>
 </div>
 <div class="section level2">
 <h2 id="comparison-of-performance">Comparison of performance<a class="anchor" aria-label="anchor" href="#comparison-of-performance"></a></h2>
@@ -776,21 +826,21 @@ Python-based programming language for GPU computing.</p>
 <code>@torch.compile</code> to compare the performance.</p>
 <p>First, we must import the <code>%gpu_timeit</code> from
 <code>cupyx</code></p>
-<div class="codewrapper sourceCode" id="cb22">
+<div class="codewrapper sourceCode" id="cb25">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" tabindex="-1" aria-label="code-block-22-1"></a><span class="op">%</span>load_ext cupyx.profiler</span></code></pre>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" tabindex="-1" aria-label="code-block-25-1"></a><span class="op">%</span>load_ext cupyx.profiler</span></code></pre>
 </div>
 <p>Next, we call our <code>calculate_forces</code> function, but for
 10,000 planets.</p>
-<div class="codewrapper sourceCode" id="cb23">
+<div class="codewrapper sourceCode" id="cb26">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" tabindex="-1" aria-label="code-block-23-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
-<span id="cb23-2"><a href="#cb23-2" tabindex="-1" aria-label="code-block-23-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span>device)</span>
-<span id="cb23-3"><a href="#cb23-3" tabindex="-1" aria-label="code-block-23-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span>device)</span>
-<span id="cb23-4"><a href="#cb23-4" tabindex="-1" aria-label="code-block-23-4"></a></span>
-<span id="cb23-5"><a href="#cb23-5" tabindex="-1" aria-label="code-block-23-5"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n50 calculate_forces(pos, mass)</span></code></pre>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" tabindex="-1" aria-label="code-block-26-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1" aria-label="code-block-26-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span>device)</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1" aria-label="code-block-26-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span>device)</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1" aria-label="code-block-26-4"></a></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1" aria-label="code-block-26-5"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n50 calculate_forces(pos, mass)</span></code></pre>
 </div>
 <div class="codewrapper">
 <h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
@@ -799,20 +849,20 @@ Python-based programming language for GPU computing.</p>
 </div>
 <p>The execution time on the GPU is around 21.880 milliseconds.</p>
 <p>We can use <code>@torch.compile</code> to speed things up!</p>
-<div class="codewrapper sourceCode" id="cb25">
+<div class="codewrapper sourceCode" id="cb28">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" tabindex="-1" aria-label="code-block-25-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1" aria-label="code-block-25-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span>device)</span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1" aria-label="code-block-25-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span>device)</span>
-<span id="cb25-4"><a href="#cb25-4" tabindex="-1" aria-label="code-block-25-4"></a></span>
-<span id="cb25-5"><a href="#cb25-5" tabindex="-1" aria-label="code-block-25-5"></a><span class="at">@torch.compile</span></span>
-<span id="cb25-6"><a href="#cb25-6" tabindex="-1" aria-label="code-block-25-6"></a><span class="kw">def</span> calculate_forces_fast(pos, mass):</span>
-<span id="cb25-7"><a href="#cb25-7" tabindex="-1" aria-label="code-block-25-7"></a>    <span class="cf">return</span> calculate_forces(pos, mass)</span>
-<span id="cb25-8"><a href="#cb25-8" tabindex="-1" aria-label="code-block-25-8"></a></span>
-<span id="cb25-9"><a href="#cb25-9" tabindex="-1" aria-label="code-block-25-9"></a>forces <span class="op">=</span> calculate_forces_fast(pos, mass)<span class="op">;</span></span>
-<span id="cb25-10"><a href="#cb25-10" tabindex="-1" aria-label="code-block-25-10"></a></span>
-<span id="cb25-11"><a href="#cb25-11" tabindex="-1" aria-label="code-block-25-11"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n50 calculate_forces_fast(pos, mass)</span></code></pre>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" tabindex="-1" aria-label="code-block-28-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1" aria-label="code-block-28-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span>device)</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1" aria-label="code-block-28-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span>device)</span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1" aria-label="code-block-28-4"></a></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1" aria-label="code-block-28-5"></a><span class="at">@torch.compile</span></span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1" aria-label="code-block-28-6"></a><span class="kw">def</span> calculate_forces_fast(pos, mass):</span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1" aria-label="code-block-28-7"></a>    <span class="cf">return</span> calculate_forces(pos, mass)</span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1" aria-label="code-block-28-8"></a></span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1" aria-label="code-block-28-9"></a>forces <span class="op">=</span> calculate_forces_fast(pos, mass)<span class="op">;</span></span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1" aria-label="code-block-28-10"></a></span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1" aria-label="code-block-28-11"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n50 calculate_forces_fast(pos, mass)</span></code></pre>
 </div>
 <div class="codewrapper">
 <h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
@@ -823,14 +873,14 @@ Python-based programming language for GPU computing.</p>
 the original version!</p>
 <p>As a comparison, we can also run the same function on the CPU using
 PyTorch:</p>
-<div class="codewrapper sourceCode" id="cb27">
+<div class="codewrapper sourceCode" id="cb30">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" tabindex="-1" aria-label="code-block-27-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
-<span id="cb27-2"><a href="#cb27-2" tabindex="-1" aria-label="code-block-27-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span><span class="st">"cpu"</span>)</span>
-<span id="cb27-3"><a href="#cb27-3" tabindex="-1" aria-label="code-block-27-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span><span class="st">"cpu"</span>)</span>
-<span id="cb27-4"><a href="#cb27-4" tabindex="-1" aria-label="code-block-27-4"></a></span>
-<span id="cb27-5"><a href="#cb27-5" tabindex="-1" aria-label="code-block-27-5"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n1 calculate_forces_fast(pos, mass)</span></code></pre>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" tabindex="-1" aria-label="code-block-30-1"></a>n <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1" aria-label="code-block-30-2"></a>pos <span class="op">=</span> torch.rand(<span class="dv">2</span>, n, device<span class="op">=</span><span class="st">"cpu"</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" tabindex="-1" aria-label="code-block-30-3"></a>mass <span class="op">=</span> torch.rand(n, device<span class="op">=</span><span class="st">"cpu"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" tabindex="-1" aria-label="code-block-30-4"></a></span>
+<span id="cb30-5"><a href="#cb30-5" tabindex="-1" aria-label="code-block-30-5"></a><span class="op">%</span>gpu_timeit <span class="op">-</span>n1 calculate_forces_fast(pos, mass)</span></code></pre>
 </div>
 <div class="codewrapper">
 <h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
@@ -859,7 +909,7 @@ What timings do you expect? What do you get?</p>
 <button class="accordion-button solution-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSolution1" aria-expanded="false" aria-controls="collapseSolution1">
   <h4 class="accordion-header" id="headingSolution1"> Show me the solution </h4>
 </button>
-<div id="collapseSolution1" class="accordion-collapse collapse" data-bs-parent="#accordionSolution1" aria-labelledby="headingSolution1">
+<div id="collapseSolution1" class="accordion-collapse collapse" aria-labelledby="headingSolution1" data-bs-parent="#accordionSolution1">
 <div class="accordion-body">
 <p>The following times where measured (on you system it might be
 different!).</p>
