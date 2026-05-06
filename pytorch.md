@@ -207,65 +207,6 @@ CPU: tensor([0.6511, 1.7587, 2.4972, 3.3509, 4.5963])
 GPU: tensor([0.6511, 1.7587, 2.4972, 3.3509, 4.5963], device='cuda:0')
 ~~~
 
-## Using `torch.compile`
-
-An important feature introduced in PyTorch 2.0 is the `@torch.compile` decorator. This decorator can be applied to a Python function and tells PyTorch to compile the tensor operations inside the function into a more optimized version before executing it. Instead of running the function line by line in Python, PyTorch analyzes the operations inside the function and builds a more efficient computation graph. It can then apply various optimizations, such as fusing multiple operations together, reducing memory usage, and generating more efficient GPU kernels.
-
-This process can significantly improve performance, especially for functions that perform many tensor operations. The compiled function can therefore run much faster than the original Python version while keeping the code easy to read and write.
-
-Below is a simple example. We create two large tensors on the GPU and define a function that performs several mathematical operations on them. By adding the `@torch.compile` decorator, PyTorch will attempt to optimize the function automatically.
-
-~~~python
-@torch.compile
-def compute(a, b):
-    return (a + b) + torch.sin(a) * torch.cos(b)
-
-a = torch.rand(1_000_000, device=device)
-b = torch.rand(1_000_000, device=device)
-c = compute(a, b)
-
-print("result:", c)
-~~~
-
-This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations. There are certain limitations to this method. For example, the inputs and outputs can only be PyTorch tensors, and you must be careful with loops (`for` statements) and conditionals (`if` statements). For more information, see the [guide](https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html) on the `torch.compile` programming model.
-
-For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
-
-~~~python
-torch._logging.set_logs(graph_code=True)
-compute(a, b)
-~~~
-
-This gives us:
-
-~~~output
-[__kernel_code] import triton
-[__kernel_code] import triton.language as tl
-[__kernel_code]
-[__kernel_code] from torch._inductor.runtime import triton_helpers, triton_heuristics
-[__kernel_code] from torch._inductor.runtime.triton_helpers import libdevice, math as tl_math
-[__kernel_code] from torch._inductor.runtime.hints import AutotuneHint, ReductionHint, TileHint, DeviceProperties
-[__kernel_code] triton_helpers.set_driver_to_gpu()
-[__kernel_code]
-[__kernel_code] @triton.jit
-[__kernel_code] def triton_poi_fused_add_cos_mul_sin_0(in_ptr0, in_ptr1, out_ptr0, xnumel, XBLOCK : tl.constexpr):
-[__kernel_code]     xnumel = 1000000
-[__kernel_code]     xoffset = tl.program_id(0) * XBLOCK
-[__kernel_code]     xindex = xoffset + tl.arange(0, XBLOCK)[:]
-[__kernel_code]     xmask = xindex < xnumel
-[__kernel_code]     x0 = xindex
-[__kernel_code]     tmp0 = tl.load(in_ptr0 + (x0), xmask)
-[__kernel_code]     tmp1 = tl.load(in_ptr1 + (x0), xmask)
-[__kernel_code]     tmp2 = tmp0 + tmp1
-[__kernel_code]     tmp3 = libdevice.sin(tmp0)
-[__kernel_code]     tmp4 = libdevice.cos(tmp1)
-[__kernel_code]     tmp5 = tmp3 * tmp4
-[__kernel_code]     tmp6 = tmp2 + tmp5
-[__kernel_code]     tl.store(out_ptr0 + (x0), tmp6, xmask)
-~~~
-
-This shows that PyTorch automatically generates a GPU kernel named `triton_poi_fused_add_cos_mul_sin_0` that performs all operations in one go, instead of having separate kernels for each operation. The generated kernel uses [Triton](https://triton-lang.org/main/index.html), a Python-based programming language for GPU computing.
-
 
 ## Larger Example
 
@@ -335,3 +276,143 @@ plt.quiver(
 ~~~
 
 ![Example of planets and the gravitational forces on a 2D plane.](fig/torch_planets_forces.png)
+
+
+## Using `torch.compile`
+
+An important feature introduced in PyTorch 2.0 is the `@torch.compile` decorator. This decorator can be applied to a Python function and tells PyTorch to compile the tensor operations inside the function into a more optimized version before executing it. Instead of running the function line by line in Python, PyTorch analyzes the operations inside the function and builds a more efficient computation graph. It can then apply various optimizations, such as fusing multiple operations together, reducing memory usage, and generating more efficient GPU kernels.
+
+This process can significantly improve performance, especially for functions that perform many tensor operations. The compiled function can therefore run much faster than the original Python version while keeping the code easy to read and write.
+
+Below is a simple example. We create two large tensors on the GPU and define a function that performs several mathematical operations on them. By adding the `@torch.compile` decorator, PyTorch will attempt to optimize the function automatically.
+
+~~~python
+@torch.compile
+def compute(a, b):
+    return (a + b) + torch.sin(a) * torch.cos(b)
+
+a = torch.rand(1_000_000, device=device)
+b = torch.rand(1_000_000, device=device)
+c = compute(a, b)
+
+print("result:", c)
+~~~
+
+This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations. There are certain limitations to this method. For example, the inputs and outputs can only be PyTorch tensors, and you must be careful with loops (`for` statements) and conditionals (`if` statements). For more information, see the [guide](https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html) on the `torch.compile` programming model.
+
+For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
+
+~~~python
+torch._logging.set_logs(graph_code=True)
+compute(a, b)
+~~~
+
+This gives us:
+
+~~~output
+[__kernel_code] import triton
+[__kernel_code] import triton.language as tl
+[__kernel_code]
+[__kernel_code] from torch._inductor.runtime import triton_helpers, triton_heuristics
+[__kernel_code] from torch._inductor.runtime.triton_helpers import libdevice, math as tl_math
+[__kernel_code] from torch._inductor.runtime.hints import AutotuneHint, ReductionHint, TileHint, DeviceProperties
+[__kernel_code] triton_helpers.set_driver_to_gpu()
+[__kernel_code]
+[__kernel_code] @triton.jit
+[__kernel_code] def triton_poi_fused_add_cos_mul_sin_0(in_ptr0, in_ptr1, out_ptr0, xnumel, XBLOCK : tl.constexpr):
+[__kernel_code]     xnumel = 1000000
+[__kernel_code]     xoffset = tl.program_id(0) * XBLOCK
+[__kernel_code]     xindex = xoffset + tl.arange(0, XBLOCK)[:]
+[__kernel_code]     xmask = xindex < xnumel
+[__kernel_code]     x0 = xindex
+[__kernel_code]     tmp0 = tl.load(in_ptr0 + (x0), xmask)
+[__kernel_code]     tmp1 = tl.load(in_ptr1 + (x0), xmask)
+[__kernel_code]     tmp2 = tmp0 + tmp1
+[__kernel_code]     tmp3 = libdevice.sin(tmp0)
+[__kernel_code]     tmp4 = libdevice.cos(tmp1)
+[__kernel_code]     tmp5 = tmp3 * tmp4
+[__kernel_code]     tmp6 = tmp2 + tmp5
+[__kernel_code]     tl.store(out_ptr0 + (x0), tmp6, xmask)
+~~~
+
+This shows that PyTorch automatically generates a GPU kernel named `triton_poi_fused_add_cos_mul_sin_0` that performs all operations in one go, instead of having separate kernels for each operation. The generated kernel uses [Triton](https://triton-lang.org/main/index.html), a Python-based programming language for GPU computing.
+
+
+## Comparison of performance
+
+Let measure the time of our function with and without `@torch.compile` to compare the performance.
+
+First, we must import the `%gpu_timeit` from `cupyx`
+
+~~~python
+%load_ext cupyx.profiler
+~~~
+
+Next, we call our `calculate_forces` function, but for 10,000 planets.
+
+~~~python
+n = 10000
+pos = torch.rand(2, n, device=device)
+mass = torch.rand(n, device=device)
+
+%gpu_timeit -n50 calculate_forces(pos, mass)
+~~~
+~~~output
+run:    CPU:   177.674 us   +/-  9.926 (min:   171.843 / max:   241.492) us     GPU-0: 21880.586 us   +/- 11.218 (min: 21849.089 / max: 21906.431) us
+~~~
+
+The execution time on the GPU is around 21.880 milliseconds.
+
+We can use `@torch.compile` to speed things up!
+
+~~~python
+n = 10000
+pos = torch.rand(2, n, device=device)
+mass = torch.rand(n, device=device)
+
+@torch.compile
+def calculate_forces_fast(pos, mass):
+    return calculate_forces(pos, mass)
+
+forces = calculate_forces_fast(pos, mass);
+
+%gpu_timeit -n50 calculate_forces_fast(pos, mass)
+~~~
+~~~output
+run:    CPU:   114.750 us   +/- 23.757 (min:   106.006 / max:   277.980) us     GPU-0:  4008.182 us   +/- 22.778 (min:  3997.696 / max:  4164.608) us
+~~~
+
+This time it takes around 4.008 milliseconds, a speedup of 5.5x over the original version!
+
+As a comparison, we can also run the same function on the CPU using PyTorch:
+
+~~~python
+n = 10000
+pos = torch.rand(2, n, device="cpu")
+mass = torch.rand(n, device="cpu")
+
+%gpu_timeit -n1 calculate_forces_fast(pos, mass)
+~~~
+~~~output
+run:    CPU: 608562.989 us     GPU-0: 608638.977 us
+~~~
+
+The CPU takes 608.563 milliseconds, meaning our GPU is around 152x faster than our CPU for this particular calculation!
+
+
+::::::::::::::::::::::::::::::::::::::: challenge
+Measure the performance of `calculate_forces_fast` for different number of planets. For example, `n=2500`, `n=5000`, `n=10000`, and `n=20000`. What timings do you expect? What do you get? 
+
+:::::::::::::::::::::::::::::::::::::: solution
+The following times where measured (on you system it might be different!). 
+
+~~~output
+421.274 us
+1354.342 us
+4965.478 us
+18965.095 us
+~~~
+
+The results show that each time we double `n`, the execution time quadrupples. This happens as the number of pair-wise interactions between $n$ planets equals $n^2$.
+::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::
