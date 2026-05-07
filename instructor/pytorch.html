@@ -385,7 +385,7 @@ tensors?”</li>
 <div class="inner bordered">
 <h3 class="card-title">Objectives</h3>
 <ul><li>“Create PyTorch tensors and apply operations.”</li>
-<li>“Understanding the <code>@torch.compile</code> decorator and its
+<li>“Understand the <code>@torch.compile</code> decorator and its
 limitations.”</li>
 <li>“Compare the performance of PyTorch against other solutions.”</li>
 </ul></div>
@@ -414,7 +414,7 @@ on the GPU using tensors.</p>
 </h3>
 <pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" tabindex="-1" aria-label="code-block-1-1"></a><span class="im">import</span> torch</span></code></pre>
 </div>
-<p>Next, we can check whether PyTorch detected a GPU:</p>
+<p>Next, we can check whether PyTorch detects a GPU:</p>
 <div class="codewrapper sourceCode" id="cb2">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
@@ -467,9 +467,9 @@ when matching NumPy code.</p>
 <h2 id="working-with-tensors">Working with tensors<a class="anchor" aria-label="anchor" href="#working-with-tensors"></a></h2>
 <p>To convert a NumPy array into a PyTorch tensor, we can use
 <code>torch.from_numpy</code>. Note that the resulting PyTorch tensor
-will not copy the data, instead it shares the same memory with the NumPy
-array. This means that modifying the PyTorch tensor will also change the
-contents of the returned NumPy array.</p>
+will not copy the data, instead, it shares the same memory with the
+NumPy array. This means that modifying the PyTorch tensor will also
+change the contents of the original NumPy array.</p>
 <p>The resulting tensor shares memory with the NumPy array.</p>
 <p>To convert a tensor back into a NumPy array, we can use
 <code>tensor.cpu().numpy()</code>. Since NumPy arrays always live in CPU
@@ -544,9 +544,9 @@ on.</p>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1" aria-label="code-block-8-8"></a>z <span class="op">=</span> torch.rand((<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>), device<span class="op">=</span>device)</span></code></pre>
 </div>
 <p>Slicing is also supported, similar to NumPy. For example,
-<code>m[i,:]</code> gives the <span class="math inline">\(i\)</span>-th
-row and <code>m[:,j] gives the $j$-th column of a matrix</code>m`. The
-result of slicing a tensor returns again a tensor. Note that modifying
+<code>m[i, :]</code> gives the <span class="math inline">\(i\)</span>-th
+row and <code>m[:, j]</code> gives the <span class="math inline">\(j\)</span>-th column of a matrix <code>m</code>.
+The result of slicing a tensor is again a tensor. Note that modifying
 this slice will also modify the original tensor, as it is a view.</p>
 <div class="codewrapper sourceCode" id="cb9">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
@@ -557,7 +557,7 @@ this slice will also modify the original tensor, as it is a view.</p>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1" aria-label="code-block-9-4"></a><span class="bu">print</span>(<span class="st">"before:"</span>, x)</span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1" aria-label="code-block-9-5"></a></span>
 <span id="cb9-6"><a href="#cb9-6" tabindex="-1" aria-label="code-block-9-6"></a><span class="co"># Modify the first row</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1" aria-label="code-block-9-7"></a>x[<span class="dv">0</span>,:] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1" aria-label="code-block-9-7"></a>x[<span class="dv">0</span>, :] <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1" aria-label="code-block-9-8"></a></span>
 <span id="cb9-9"><a href="#cb9-9" tabindex="-1" aria-label="code-block-9-9"></a><span class="co"># Print the matrix</span></span>
 <span id="cb9-10"><a href="#cb9-10" tabindex="-1" aria-label="code-block-9-10"></a><span class="bu">print</span>(<span class="st">"after:"</span>, x)</span></code></pre>
@@ -601,8 +601,8 @@ NumPy array into a GPU tensor.</p>
 <div class="codewrapper sourceCode" id="cb13">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
-<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" tabindex="-1" aria-label="code-block-13-1"></a>x <span class="op">=</span> torch.rand(<span class="dv">10</span>, device<span class="op">=</span>device)</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1" aria-label="code-block-13-2"></a>y <span class="op">=</span> np.arange(<span class="dv">10</span>)</span>
+<pre class="sourceCode python" tabindex="0"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" tabindex="-1" aria-label="code-block-13-1"></a>x <span class="op">=</span> torch.rand(<span class="dv">5</span>, device<span class="op">=</span>device)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1" aria-label="code-block-13-2"></a>y <span class="op">=</span> np.arange(<span class="dv">5</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" tabindex="-1" aria-label="code-block-13-3"></a></span>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1" aria-label="code-block-13-4"></a><span class="co"># This is not allowed</span></span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1" aria-label="code-block-13-5"></a><span class="cf">try</span>:</span>
@@ -625,15 +625,15 @@ GPU: tensor([0.6511, 1.7587, 2.4972, 3.3509, 4.5963], device='cuda:0')</code></p
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-using-gravitational-forces">Example using Gravitational Forces<a class="anchor" aria-label="anchor" href="#example-using-gravitational-forces"></a></h2>
+<h2 id="example-using-n-body-simulation">Example Using N-Body Simulation<a class="anchor" aria-label="anchor" href="#example-using-n-body-simulation"></a></h2>
 <p>Now, we will consider a larger example of how to use PyTorch. For
-this example, we generate <code>n</code> random planetary bodies. Next,
-we calculate the total gravitational force that each body experiences
-from the other bodies using <a href="https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation" class="external-link">Newton’s
+this example, we consider <code>n</code> random planetary bodies and
+calculate the total gravitational force that each body experiences from
+the other bodies using <a href="https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation" class="external-link">Newton’s
 law of universal gravitation</a>.</p>
-<p>First, we generate <code>n</code> random planets in a 2 dimensional
-plane. The <code>x</code> and <code>y</code> coordinates are randomly in
-the range [0, 1].</p>
+<p>First, we generate <code>n</code> random planets in a 2D plane. The
+<code>x</code> and <code>y</code> coordinates are chosen randomly in the
+range <span class="math inline">\([0, 1]\)</span>.</p>
 <div class="codewrapper sourceCode" id="cb15">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
@@ -815,8 +815,8 @@ this output is the following:</p>
 <em>kernel</em> named <code>triton_poi_fused_add_cos_mul_sin_0</code>
 that performs all operations in one go, instead of having separate
 functions for each operation. The generated kernel uses <a href="https://triton-lang.org/main/index.html" class="external-link">Triton</a>, a
-Python-based programming language for GPU computing.</p>
-<p>There are certain limitations <code>@torch.compile</code>. For
+Python-based language and compiler for GPU programming.</p>
+<p>There are certain limitations to <code>@torch.compile</code>. For
 example, the inputs and outputs can only be PyTorch tensors, and you
 must be careful with loops (<code>for</code> statements) and
 conditionals (<code>if</code> statements). For more information, see the
@@ -825,7 +825,7 @@ on the <code>torch.compile</code> programming model.</p>
 <p>As an example, consider the following function that scales a tensor
 by <code>2</code> if the sum is positive and <code>-2</code> otherwise.
 Note that we pass the <code>fullgraph=True</code> option to force
-PyTorch to raise an error if it could not compile.</p>
+PyTorch to raise an error if it cannot compile.</p>
 <div class="codewrapper sourceCode" id="cb23">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
@@ -836,7 +836,7 @@ PyTorch to raise an error if it could not compile.</p>
 <span id="cb23-5"><a href="#cb23-5" tabindex="-1" aria-label="code-block-23-5"></a>    <span class="cf">if</span> x.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">0</span>:</span>
 <span id="cb23-6"><a href="#cb23-6" tabindex="-1" aria-label="code-block-23-6"></a>        <span class="cf">return</span> x <span class="op">*</span> <span class="dv">2</span></span>
 <span id="cb23-7"><a href="#cb23-7" tabindex="-1" aria-label="code-block-23-7"></a>    <span class="cf">else</span>:</span>
-<span id="cb23-8"><a href="#cb23-8" tabindex="-1" aria-label="code-block-23-8"></a>        <span class="cf">return</span> x <span class="op">-</span> <span class="dv">2</span></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1" aria-label="code-block-23-8"></a>        <span class="cf">return</span> x <span class="op">*</span> <span class="op">-</span><span class="dv">2</span></span>
 <span id="cb23-9"><a href="#cb23-9" tabindex="-1" aria-label="code-block-23-9"></a></span>
 <span id="cb23-10"><a href="#cb23-10" tabindex="-1" aria-label="code-block-23-10"></a>fail_example(torch.rand(<span class="dv">100</span>, device<span class="op">=</span>device))</span></code></pre>
 </div>
@@ -854,9 +854,8 @@ PyTorch to raise an error if it could not compile.</p>
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0170.html</code></pre>
 </div>
 <p>The problem here is that PyTorch cannot statically determine whether
-to execute the <code>x * 2</code> operation or the <code>x * -2</code>
-operation, as this is dependent on the runtime value of
-<code>x.sum()</code>.</p>
+to execute <code>x * 2</code> or <code>x * -2</code>, as this is
+dependent on the runtime value of <code>x.sum()</code>.</p>
 <p>Instead, for this example, we can use <code>torch.where</code> to
 select between them instead of having an if statement.</p>
 <div class="codewrapper sourceCode" id="cb25">
@@ -867,18 +866,18 @@ select between them instead of having an if statement.</p>
 <span id="cb25-3"><a href="#cb25-3" tabindex="-1" aria-label="code-block-25-3"></a><span class="at">@torch.compile</span>(fullgraph<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb25-4"><a href="#cb25-4" tabindex="-1" aria-label="code-block-25-4"></a><span class="kw">def</span> correct_example(x):</span>
 <span id="cb25-5"><a href="#cb25-5" tabindex="-1" aria-label="code-block-25-5"></a>    condition <span class="op">=</span> x.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">0</span></span>
-<span id="cb25-6"><a href="#cb25-6" tabindex="-1" aria-label="code-block-25-6"></a>    <span class="cf">return</span> torch.where(condition, x <span class="op">*</span> <span class="dv">2</span>, x <span class="op">-</span> <span class="dv">2</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1" aria-label="code-block-25-6"></a>    <span class="cf">return</span> torch.where(condition, x <span class="op">*</span> <span class="dv">2</span>, x <span class="op">*</span> <span class="op">-</span><span class="dv">2</span>)</span>
 <span id="cb25-7"><a href="#cb25-7" tabindex="-1" aria-label="code-block-25-7"></a></span>
 <span id="cb25-8"><a href="#cb25-8" tabindex="-1" aria-label="code-block-25-8"></a>correct_example(torch.rand(<span class="dv">100</span>, device<span class="op">=</span>device))</span></code></pre>
 </div>
 </div>
 <div class="section level2">
 <h2 id="comparison-of-performance">Comparison of performance<a class="anchor" aria-label="anchor" href="#comparison-of-performance"></a></h2>
-<p>Let measure the time of our <code>calculate_forces</code> function
+<p>Let’s measure the time of our <code>calculate_forces</code> function
 with and without <code>@torch.compile</code> to compare the
 performance.</p>
-<p>First, we must import the <code>%gpu_timeit</code> from
-<code>cupyx</code></p>
+<p>First, we import <code>%gpu_timeit</code> from
+<code>cupyx</code>.</p>
 <div class="codewrapper sourceCode" id="cb26">
 <h3 class="code-label">PYTHON<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
 </h3>
@@ -954,9 +953,10 @@ faster than our CPU for this particular calculation!</p>
 <h3 class="callout-title">Challenge</h3>
 <div class="callout-content">
 <p>Measure the performance of <code>calculate_forces_fast</code> for
-different number of planets. For example, <code>n=2500</code>,
-<code>n=5000</code>, <code>n=10_000</code>, and <code>n=20_000</code>.
-What timings do you expect? What do you get?</p>
+different numbers of planets. For example, <code>n = 2500</code>,
+<code>n = 5000</code>, <code>n = 10_000</code>, and
+<code>n = 20_000</code>. What timings do you expect? What do you
+get?</p>
 </div>
 </div>
 </div>
@@ -967,7 +967,7 @@ What timings do you expect? What do you get?</p>
 </button>
 <div id="collapseSolution1" class="accordion-collapse collapse" aria-labelledby="headingSolution1" data-bs-parent="#accordionSolution1">
 <div class="accordion-body">
-<p>The following times where measured (on you system it might be
+<p>The following times were measured (on your system they might be
 different!).</p>
 <div class="codewrapper">
 <h3 class="code-label">OUTPUT<i aria-hidden="true" data-feather="chevron-left"></i><i aria-hidden="true" data-feather="chevron-right"></i>
@@ -978,7 +978,7 @@ different!).</p>
 18965.095 us</code></pre>
 </div>
 <p>The results show that each time we double <code>n</code>, the
-execution time quadrupples. This happens as the number of pair-wise
+execution time quadruples. This happens as the number of pairwise
 interactions between <span class="math inline">\(n\)</span> planets
 equals <span class="math inline">\(n^2\)</span>.</p>
 </div>
