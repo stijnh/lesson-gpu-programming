@@ -72,7 +72,9 @@ This should print `4` and `torch.float32`. Notice that PyTorch’s default float
 
 ## Working with tensors
 
-To convert a NumPy array into a PyTorch tensor, we can use `torch.from_numpy`. The resulting tensor shares memory with the NumPy array.
+To convert a NumPy array into a PyTorch tensor, we can use `torch.from_numpy`. Note that the resulting PyTorch tensor will not copy the data, instead it shares the same memory with the NumPy array. This means that modifying the PyTorch tensor will also change the contents of the returned NumPy array.
+
+The resulting tensor shares memory with the NumPy array.
 
 To convert a tensor back into a NumPy array, we can use `tensor.cpu().numpy()`. Since NumPy arrays always live in CPU memory, CUDA tensors must first be copied back to the CPU using `.cpu()`.
 
@@ -303,14 +305,20 @@ c = compute(a, b)
 print("result:", c)
 ~~~
 
-This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations. For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
+This lets PyTorch optimize the `compute` function as a whole and makes the code faster than running the operations separately. It accomplishes this by tracing through your Python code and looking for PyTorch operations.
+
+::::::::::::::::::::::::::::: instructor
+The following section demonstrates how PyTorch compiles and fuses the operations in the computation graph. Instructors may choose to demonstrate this information to the class if time permits. However, it can also be skipped as it may be too advanced for learners new to GPU concepts.
+::::::::::::::::::::::::::::::::::::::::
+
+For example, to see what PyTorch is doing internally, we can use `set_logs`, which prints what happens under the hood.
 
 ~~~python
 torch._logging.set_logs(graph_code=True)
 compute(a, b)
 ~~~
 
-This generates a large amount of output about the internals of PyTorch. You do not need to understand all the output. However,among this output is the following:
+This generates a large amount of output about the internals of PyTorch. You do not need to understand all the output. However, among this output is the following:
 
 ~~~output
 ...
@@ -356,7 +364,7 @@ This part shows that PyTorch automatically generated a GPU _kernel_ named `trito
 
 There are certain limitations `@torch.compile`. For example, the inputs and outputs can only be PyTorch tensors, and you must be careful with loops (`for` statements) and conditionals (`if` statements). For more information, see the [guide](https://docs.pytorch.org/docs/stable/user_guide/torch_compiler/compile/programming_model.html) on the `torch.compile` programming model.
 
-As an example, consider the following function that scales a tensor by `2` if the sum is positive and `-2` otherwise. Note that we pass the `fullgraph=True` option to force PyTorch to raise an error if it could not compile. 
+As an example, consider the following function that scales a tensor by `2` if the sum is positive and `-2` otherwise. Note that we pass the `fullgraph=True` option to force PyTorch to raise an error if it could not compile.
 
 ~~~python
 import torch
@@ -413,14 +421,15 @@ First, we must import the `%gpu_timeit` from `cupyx`
 Next, we call our function with 10,000 planets.
 
 ~~~python
-n = 10000
+n = 10_000
 pos = torch.rand(2, n, device=device)
 mass = torch.rand(n, device=device)
 
 %gpu_timeit -n50 calculate_forces(pos, mass)
 ~~~
 ~~~output
-run:    CPU:   177.674 us   +/-  9.926 (min:   171.843 / max:   241.492) us     GPU-0: 21880.586 us   +/- 11.218 (min: 21849.089 / max: 21906.431) us
+run:    CPU:   177.674 us   +/-  9.926 (min:   171.843 / max:   241.492) us
+      GPU-0: 21880.586 us   +/- 11.218 (min: 21849.089 / max: 21906.431) us
 ~~~
 
 The execution time on the GPU is around 21.880 milliseconds.
@@ -428,7 +437,7 @@ The execution time on the GPU is around 21.880 milliseconds.
 We can use `@torch.compile` to speed things up! Note how `@torch.compile` works recursively: if a function is compiled, all called functions are also compiled.
 
 ~~~python
-n = 10000
+n = 10_000
 pos = torch.rand(2, n, device=device)
 mass = torch.rand(n, device=device)
 
@@ -441,7 +450,8 @@ forces = calculate_forces_fast(pos, mass);
 %gpu_timeit -n50 calculate_forces_fast(pos, mass)
 ~~~
 ~~~output
-run:    CPU:   114.750 us   +/- 23.757 (min:   106.006 / max:   277.980) us     GPU-0:  4008.182 us   +/- 22.778 (min:  3997.696 / max:  4164.608) us
+run:    CPU:   114.750 us   +/- 23.757 (min:   106.006 / max:   277.980) us
+      GPU-0:  4008.182 us   +/- 22.778 (min:  3997.696 / max:  4164.608) us
 ~~~
 
 This time it takes around 4.008 milliseconds, a speedup of 5.5x over the original version!
@@ -449,7 +459,7 @@ This time it takes around 4.008 milliseconds, a speedup of 5.5x over the origina
 As a comparison, we can also run the same function on the CPU using PyTorch:
 
 ~~~python
-n = 10000
+n = 10_000
 pos = torch.rand(2, n, device="cpu")
 mass = torch.rand(n, device="cpu")
 
@@ -463,10 +473,10 @@ The CPU takes 608.563 milliseconds, meaning our GPU is around 152x faster than o
 
 
 ::::::::::::::::::::::::::::::::::::::: challenge
-Measure the performance of `calculate_forces_fast` for different number of planets. For example, `n=2500`, `n=5000`, `n=10000`, and `n=20000`. What timings do you expect? What do you get? 
+Measure the performance of `calculate_forces_fast` for different number of planets. For example, `n=2500`, `n=5000`, `n=10_000`, and `n=20_000`. What timings do you expect? What do you get?
 
 :::::::::::::::::::::::::::::::::::::: solution
-The following times where measured (on you system it might be different!). 
+The following times where measured (on you system it might be different!).
 
 ~~~output
 421.274 us
